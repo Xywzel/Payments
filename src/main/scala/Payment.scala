@@ -1,3 +1,5 @@
+import helpers.Options
+
 /**
  * This is a application for calculating wage with very simple hourly wage system
  * Takes as a parameter a .csv file with the hours and optionally a starting and
@@ -6,6 +8,8 @@
  */
 
 object Payment extends App {
+  def centsToPrint(x: Int): String = Options.currencySymbol + x / 100 + Options.decimalSeparator + x % 100
+
   val fileName = if (args.length > 0) args(0) else "HourList201403.csv"
   val startTime = if (args.length > 1) Option(WorkRecord.parseDate(args(1))) else None
   val endTime = if (args.length > 2) Option(WorkRecord.parseDate(args(2))) else None
@@ -16,7 +20,9 @@ object Payment extends App {
 
   val recordsByEmployee: Map[(String, String), List[WorkRecord]] = record.groupBy(_.worker)
   val wagesByEmployee: Iterable[(String, String, PersonalReport)] = recordsByEmployee.map(x => (x._1._1, x._1._2, new PersonalReport(x._2)))
+
+  println(Options.printHeader + " " + startTime)
   for (x <- wagesByEmployee) {
-    println(x._2 + ", " + x._1 + ", $" + x._3.totalWage)
+    println(x._2 + ", " + x._1 + ", " + centsToPrint(x._3.totalWage))
   }
 }

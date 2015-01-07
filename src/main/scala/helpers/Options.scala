@@ -9,6 +9,8 @@ import org.joda.time.format.DateTimeFormat
  */
 object Options {
   val dateFormat: String = "dd.MM.YYYY"
+  val decimalSeparator: String = "."
+  val currencySymbol: String = "$"
 
   val dayStart: String = "08:00"
   val dayEnd: String = "16:00"

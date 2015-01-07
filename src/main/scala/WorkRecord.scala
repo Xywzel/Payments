@@ -31,10 +31,12 @@ class WorkRecord(val name: String, val id: String, val time: Interval) {
   // The work shift might start before midnight and last till day hours
   def dayHours: Double = {
     val today = date.toDateTime(Options.startOfDay) to date.toDateTime(Options.endOfDay)
-    val todayWork = time.overlap(today)
     val tomorrow = (date + 1.day).toDateTime(Options.startOfDay) to (date + 1.day).toDateTime(Options.endOfDay)
-    val tomorrowWork = time.overlap(tomorrow)
-    hours(todayWork) + hours(tomorrowWork)
+    0.0 + {
+      if (time.overlaps(today)) hours(time.overlap(today)) else 0.0
+    } + {
+      if (time.overlaps(tomorrow)) hours(time.overlap(tomorrow)) else 0.0
+    }
   }
 
   // Everything that is not day hours
