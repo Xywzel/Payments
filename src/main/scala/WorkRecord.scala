@@ -13,18 +13,25 @@ import helpers.Options
 
 class WorkRecord(val person: Person, val time: Interval) {
 
-  def lenght: Int = {
-    time.duration.getStandardHours.toInt
+  def length: Double = {
+    val hours = time.duration.getStandardHours
+    val mins = time.duration.getStandardMinutes
+    hours.toFloat + (mins % 60).toFloat / 60.0
   }
 
-  def dayHours: Int = {
+  def dayHours: Double = {
     val daysWorkTime = time.start.toLocalDate.toDateTime(Options.startOfDay) to time.start.toLocalDate.toDateTime(Options.endOfDay)
-    time.overlap(daysWorkTime).duration.
-    0
+    val hours = time.overlap(daysWorkTime).duration.getStandardHours
+    val mins = time.overlap(daysWorkTime).duration.getStandardMinutes
+    hours.toFloat + (mins % 60).toFloat / 60.0
   }
 
   def eveningHours: Int = {
-    0
+    val workStart = time.start.toLocalDate.toDateTime(Options.startOfDay)
+    val workEnd = time.start.toLocalDate.toDateTime(Options.endOfDay)
+    val before = if (workStart < time.start) (time.start to workStart).duration.getStandardHours.toInt else 0
+    val after = if (workEnd > time.end) (workEnd to time.end).duration.getStandardHours.toInt else 0
+    before + after
   }
 
   def isBefore(moment: Date): Boolean = {
