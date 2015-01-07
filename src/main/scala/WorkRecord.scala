@@ -11,27 +11,39 @@ import com.github.nscala_time.time.Imports._
 import com.github.tototoshi.csv.CSVReader
 import helpers.Options
 
-class WorkRecord(val person: Person, val time: Interval) {
+class WorkRecord(val name: String, val id: String, val time: Interval) {
+
+  def worker: (String, String) = {
+    (name, id)
+  }
+
+  // Hour has 60 minutes, in accuracy of work hours, below is ok
+  def hours(interval: Interval): Double = {
+    val hours = interval.duration.getStandardHours
+    val mins = interval.duration.getStandardMinutes - 60 * hours
+    hours.toDouble + mins.toDouble / 60.0
+  }
 
   def length: Double = {
-    val hours = time.duration.getStandardHours
-    val mins = time.duration.getStandardMinutes
-    hours.toFloat + (mins % 60).toFloat / 60.0
+    hours(time)
   }
 
+  // The work shift might start before midnight and last till day hours
   def dayHours: Double = {
-    val daysWorkTime = time.start.toLocalDate.toDateTime(Options.startOfDay) to time.start.toLocalDate.toDateTime(Options.endOfDay)
-    val hours = time.overlap(daysWorkTime).duration.getStandardHours
-    val mins = time.overlap(daysWorkTime).duration.getStandardMinutes
-    hours.toFloat + (mins % 60).toFloat / 60.0
+    val today = date.toDateTime(Options.startOfDay) to date.toDateTime(Options.endOfDay)
+    val todayWork = time.overlap(today)
+    val tomorrow = (date + 1.day).toDateTime(Options.startOfDay) to (date + 1.day).toDateTime(Options.endOfDay)
+    val tomorrowWork = time.overlap(tomorrow)
+    hours(todayWork) + hours(tomorrowWork)
   }
 
-  def eveningHours: Int = {
-    val workStart = time.start.toLocalDate.toDateTime(Options.startOfDay)
-    val workEnd = time.start.toLocalDate.toDateTime(Options.endOfDay)
-    val before = if (workStart < time.start) (time.start to workStart).duration.getStandardHours.toInt else 0
-    val after = if (workEnd > time.end) (workEnd to time.end).duration.getStandardHours.toInt else 0
-    before + after
+  // Everything that is not day hours
+  def eveningHours: Double = {
+    length - dayHours
+  }
+
+  def date: LocalDate = {
+    time.start.toLocalDate
   }
 
   def isBefore(moment: Date): Boolean = {
@@ -53,15 +65,14 @@ object WorkRecord {
   }
 
   def fromMap(record: Map[String, String]): WorkRecord = {
-    println(Options.nameHeader)
-    println(record(Options.idHeader))
-    val person = new Person(record(Options.nameHeader), record(Options.idHeader))
+    val name = record(Options.nameHeader)
+    val id = record(Options.idHeader)
     val time =
       intervalFromStrings(
         record(Options.dateHeader),
         record(Options.startHeader),
         record(Options.endHeader))
-    new WorkRecord(person, time)
+    new WorkRecord(name, id, time)
   }
 
   def intervalFromStrings(date: String, start: String, end: String): Interval = {

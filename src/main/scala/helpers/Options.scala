@@ -2,7 +2,6 @@ package helpers
 
 import com.github.nscala_time.time.Imports._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, Interval}
 
 /**
  * This can be used to configure some of codes behavior
@@ -22,7 +21,10 @@ object Options {
   // Cents
   val eveningBonus: Int = 115
   // Cents
-  val overtimeBonus: Map[Int, Int] = Map(0 -> 25, 2 -> 50, 4 -> 100) // hours of overtime -> per cent of hourly wage for bonus
+  val overtimeBonus: Vector[Double] = Vector(25.0, 25.0, 50.0)
+  // Cumulative bonus for overtime
+  val overtimeLimits: Vector[Int] = Vector(0, 2, 4) // Hours of overtime after above is used
+  // 0-2 hours of overtime 25% bonus, 2-4 hours -> 25% + 25%, 4- 100%
 
   val nameHeader: String = "Person Name"
   val idHeader: String = "Person ID"
