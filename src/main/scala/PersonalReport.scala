@@ -10,7 +10,7 @@ import org.joda.time.LocalDate
  */
 
 
-class PersonalReport(val records: List[WorkRecord]) {
+class PersonalReport(val allRecords: List[WorkRecord]) {
 
   def totalDayHours(records: List[WorkRecord]): Double =
     records.foldLeft(0.0)((x: Double, record: WorkRecord) => x + record.dayHours)
@@ -34,11 +34,11 @@ class PersonalReport(val records: List[WorkRecord]) {
   }
 
   lazy val totalWage = {
-    records.groupBy(_.date).foldLeft(0)((x: Int, y: (LocalDate, List[WorkRecord])) => x + dailyWage(y._2))
+    allRecords.groupBy(_.date).foldLeft(0)((x: Int, y: (LocalDate, List[WorkRecord])) => x + dailyWage(y._2))
   }
 
   lazy val totalHours = {
-    records.foldLeft(0.0)((hours: Double, record: WorkRecord) => hours + record.length)
+    allRecords.foldLeft(0.0)((hours: Double, record: WorkRecord) => hours + record.length)
   }
 
 }

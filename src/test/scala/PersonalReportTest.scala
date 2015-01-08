@@ -41,6 +41,16 @@ class PersonalReportSpec extends FlatSpec with Matchers {
     report.totalWage should equal((8.0 * 375 + 1.25 * 375 + 1.0 * 115).round)
   }
 
+  it should "have correct payment for multiple days" in {
+    val record1 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T08:00:00") to DateTime.parse("2014-12-1T16:00:00")) //8
+    val record2 = new WorkRecord("A", "1", DateTime.parse("2014-12-2T08:00:00") to DateTime.parse("2014-12-2T16:00:00")) //8
+    val record3 = new WorkRecord("A", "1", DateTime.parse("2014-12-3T08:00:00") to DateTime.parse("2014-12-3T16:00:00")) //8
+    val record4 = new WorkRecord("A", "1", DateTime.parse("2014-12-4T08:00:00") to DateTime.parse("2014-12-4T16:00:00")) //8
+    val report = new PersonalReport(List(record1, record2, record3, record4))
+    report.totalHours should equal(4.0 * 8.0)
+    report.totalWage should equal((8.0 * 375 * 4).round)
+  }
+
   "A TotalDayHours" should "have combined length of intervals during day hours" in {
     val record1 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T04:00:00") to DateTime.parse("2014-12-1T12:00:00"))
     val record2 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T12:00:00") to DateTime.parse("2014-12-1T20:00:00"))
