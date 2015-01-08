@@ -38,7 +38,41 @@ class PersonalReportSpec extends FlatSpec with Matchers {
     val record = new WorkRecord("A", "1", DateTime.parse("2014-12-1T08:00:00") to DateTime.parse("2014-12-1T17:00:00"))
     val report = new PersonalReport(List(record))
     report.totalHours should equal(9.0)
-    report.totalWage should equal(8.0 * 375 + 1.25 * 375 + 1.0 * 115)
+    report.totalWage should equal((8.0 * 375 + 1.25 * 375 + 1.0 * 115).round)
+  }
+
+  "A TotalDayHours" should "have combined length of intervals during day hours" in {
+    val record1 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T04:00:00") to DateTime.parse("2014-12-1T12:00:00"))
+    val record2 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T12:00:00") to DateTime.parse("2014-12-1T20:00:00"))
+    val record3 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T13:00:00") to DateTime.parse("2014-12-1T20:00:00"))
+    val record4 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T04:00:00") to DateTime.parse("2014-12-1T11:00:00"))
+    val report = new PersonalReport(List(record1))
+    report.totalDayHours(List(record1, record2)) should equal(8.0)
+    report.totalDayHours(List(record1, record3)) should equal(7.0)
+    report.totalDayHours(List(record4, record2)) should equal(7.0)
+  }
+
+  "A TotalEveningHours" should "have combined length of intervals during night hours" in {
+    val record1 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T07:00:00") to DateTime.parse("2014-12-1T12:00:00")) //1
+    val record2 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T12:00:00") to DateTime.parse("2014-12-1T17:00:00")) //1
+    val record3 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T15:00:00") to DateTime.parse("2014-12-1T20:00:00")) //4
+    val record4 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T01:00:00") to DateTime.parse("2014-12-1T12:00:00")) //7
+    val report = new PersonalReport(List(record1))
+    report.totalEveningHours(List(record1, record2)) should equal(2.0)
+    report.totalEveningHours(List(record1, record3)) should equal(5.0)
+    report.totalEveningHours(List(record4, record2)) should equal(8.0)
+  }
+
+  "A OverTime" should "total length of intervals - 8 hours" in {
+    val record1 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T01:00:00") to DateTime.parse("2014-12-1T09:00:00")) //8
+    val record2 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T10:00:00") to DateTime.parse("2014-12-1T11:00:00")) //1
+    val record3 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T12:00:00") to DateTime.parse("2014-12-1T20:00:00")) //8
+    val record4 = new WorkRecord("A", "1", DateTime.parse("2014-12-1T21:00:00") to DateTime.parse("2014-12-2T03:00:00")) //6
+    val report = new PersonalReport(List(record1))
+    report.overTime(List(record1)) should equal(0.0)
+    report.overTime(List(record2)) should equal(-7.0)
+    report.overTime(List(record1, record2)) should equal(1.0)
+    report.overTime(List(record1, record2, record3, record4)) should equal(15.0)
   }
 
 }
