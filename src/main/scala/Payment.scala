@@ -1,3 +1,5 @@
+import java.util.Date
+
 import helpers.Options
 
 /**
@@ -8,15 +10,23 @@ import helpers.Options
  */
 
 object Payment extends App {
-  def centsToPrint(x: Int): String = Options.currencySymbol + x / 100 + Options.decimalSeparator + x % 100
+  def centsToPrint(x: Int): String = {
+    val midZero = if (x % 100 < 10) "0" else ""
+    Options.currencySymbol + x / 100 + Options.decimalSeparator + midZero + x % 100
+  }
+
+  def filteredRecord(fileName: String, startTime: Option[Date], endTime: Option[Date]): List[WorkRecord] = {
+    var record = WorkRecord.fromFile(fileName)
+    if (startTime.isDefined) record = record.filter(x => x.isBefore(startTime.get))
+    if (endTime.isDefined) record = record.filter(x => x.isBefore(endTime.get))
+    record
+  }
 
   val fileName = if (args.length > 0) args(0) else "HourList201403.csv"
   val startTime = if (args.length > 1) Option(WorkRecord.parseDate(args(1))) else None
   val endTime = if (args.length > 2) Option(WorkRecord.parseDate(args(2))) else None
 
-  var record = WorkRecord.fromFile(fileName)
-  if (startTime.isDefined) record = record.filter(x => x.isBefore(startTime.get))
-  if (endTime.isDefined) record = record.filter(x => x.isBefore(endTime.get))
+  var record = filteredRecord(fileName, startTime, endTime)
 
   val recordsByEmployee: Map[(String, String), List[WorkRecord]] = record.groupBy(_.worker)
   val wagesByEmployee: Iterable[(String, String, PersonalReport)] = recordsByEmployee.map(x => (x._1._1, x._1._2, new PersonalReport(x._2)))
